@@ -3,8 +3,9 @@ from django.http import HttpResponse
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
-from .models import School, Classroom
-
+from .models import Classroom, Course, School, Exam
+from rest_framework import viewsets, permissions
+from .serializers import ClassroomSerializer, CourseSerializer, SchoolSerializer, ExamSerializer
 def json_response(data, status=200):
     return HttpResponse(json.dumps(data), content_type="application/json", status=status)
 
@@ -66,3 +67,21 @@ class ClassroomViewSet(View):
             area=float(data["area"])
         )
         return json_response({"id": classroom.id, "school": classroom.school.id, "name": classroom.name, "area": classroom.area}, status=201)
+
+
+class CourseViewSet(viewsets.ModelViewSet):
+    queryset = Course.objects.all()
+    serializer_class = CourseSerializer
+    pagination_class = StandardResultsSetPagination
+    permission_classes = [permissions.IsAuthenticated]
+
+class ExamViewSet(viewsets.ModelViewSet):
+    serializer_class = ExamSerializer
+    pagination_class = StandardResultsSetPagination
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_superuser:
+            return Exam.objects.all()
+        return Exam.objects.filter(user=user)

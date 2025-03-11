@@ -1,7 +1,12 @@
 import json
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
-from .models import School, Classroom
+from .models import School, Classroom , Exam ,Course
+from .serializers import ClassroomSerializer, CourseSerializer, SchoolSerializer, ExamSerializer
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.response import Response
+from rest_framework import viewsets, permissions
+
 def json_response(data, status=200):
     return HttpResponse(json.dumps(data), content_type="application/json", status=status)
 
@@ -55,3 +60,10 @@ def classroom_create(request):
             area=float(data["area"])
         )
         return json_response({"id": classroom.id, "school": classroom.school.id, "name": classroom.name, "area": classroom.area}, status=201)
+
+
+
+class StandardResultsSetPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 100
